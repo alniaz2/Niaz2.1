@@ -1,0 +1,38 @@
+name: US and Europe News Agent
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */2 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  find-trends:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Find trending topics
+        run: python trend_hunter.py
+
+      - name: Save trending results
+        uses: actions/upload-artifact@v4
+        with:
+          name: google-trends-results
+          path: trends.json
+          if-no-files-found: warn
+          retention-days: 7
